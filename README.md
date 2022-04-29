@@ -1,1 +1,1 @@
-all passwords are all `1234`
+passwords are all `1234`
