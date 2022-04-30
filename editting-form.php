@@ -233,3 +233,5 @@ try {
 </body>
 
 </html>
+
+<?php unset($_SESSION['REPORT_MSG']);
