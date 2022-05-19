@@ -17,6 +17,15 @@ try {
         $firstname = $_POST['firstname'];
         $lastname = $_POST['lastname'];
         $username = $_POST['username'];
+        $address = $_POST['address'];
+        $gender = $_POST['gender'];
+        if ($_POST['month'] + 5 > 12) {
+            $month = ($_POST['month'] + 5)-12;
+        } else {
+            $month = $_POST['month'] + 5;
+        }
+        $day = $_POST['day'];
+        $year = $_POST['year'];
 
         // check if username exists
         $sql = "SELECT id FROM Users WHERE username != :1 AND username = :2";
@@ -33,12 +42,29 @@ try {
                     'body' => null
                 );
             } else {
-                $sql = "UPDATE Users SET firstname = :1, lastname = :2, username = :3 WHERE username = :4";
+                $sql =
+                    "UPDATE Users 
+                    SET 
+                        firstname = :1, 
+                        lastname = :2, 
+                        username = :3,
+                        address = :4,
+                        gender = :5,
+                        month = :6,
+                        day = :7,
+                        year = :8
+                    WHERE 
+                        username = :9";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':1', $firstname);
                 $stmt->bindParam(':2', $lastname);
                 $stmt->bindParam(':3', $username);
-                $stmt->bindParam(':4', $_GET['username']);
+                $stmt->bindParam(':4', $address);
+                $stmt->bindParam(':5', $gender);
+                $stmt->bindParam(':6', $month);
+                $stmt->bindParam(':7', $day);
+                $stmt->bindParam(':8', $year);
+                $stmt->bindParam(':9', $_GET['username']);
 
                 if ($stmt->execute()) {
                     if ($_GET['username'] === $_SESSION['SAVED_LOGIN']) {
@@ -174,17 +200,59 @@ try {
         <div class="editting-form flex-grow-1 p-3">
 
             <form class="needs-validation" method="POST" novalidate>
-                <div class="mb-3">
-                    <label for="firstname">First name</label>
-                    <input type="text" class="form-control" id="firstname" name="firstname" value="<?= $userData['firstname'] ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label for="lastname">Last name</label>
-                    <input type="text" class="form-control" id="lastname" name="lastname" value="<?= $userData['lastname'] ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" value="<?= $userData['username'] ?>" required>
+                <div class="row">
+                    <div class="col-4 mb-3">
+                        <label for="firstname">First name</label>
+                        <input type="text" class="form-control" id="firstname" name="firstname" value="<?= $userData['firstname'] ?>" required>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label for="lastname">Last name</label>
+                        <input type="text" class="form-control" id="lastname" name="lastname" value="<?= $userData['lastname'] ?>" required>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="<?= $userData['username'] ?>" required>
+                    </div>
+                    <div class="col-8 mb-3">
+                        <label for="address">Address</label>
+                        <input type="text" class="form-control" id="address" name="address" value="<?= $userData['address'] ?>" required>
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label for="username">Gender</label>
+                        <select name="gender" id="gender" class="form-control" required>
+                            <option disabled selected>Select gender</option>
+                            <option value="male" <?= $userData['gender'] == 'male' ? 'selected' : '' ?>>Male</option>
+                            <option value="female" <?= $userData['gender'] == 'female' ? 'selected' : '' ?>>Female</option>
+                        </select>
+                    </div>
+
+                    <div class="col-4 mb-3">
+                        <label for="username">Birthday</label>
+                        <div class="d-flex gap-1">
+                            <select class="form-control" name="month" id="month">
+                                <option value="" disabled selected>Month</option>
+                                <?php for ($month = 1; $month <= 12; $month++) : ?>
+                                    <option value="<?= $month ?>" <?= $userData['month'] == $month ? 'selected' : '' ?>><?= date("F", mktime(0, 0, 0, $month, 10)) ?></option>
+                                <?php endfor ?>
+                            </select>
+                            <select class="form-control" name="day" id="day">
+                                <option value="" disabled selected>Day</option>
+                                <?php for ($day = 1; $day <= cal_days_in_month(CAL_GREGORIAN, $userData['month'], $userData['year']); $day++) : ?>
+                                    <option value="<?= $day ?>" <?= $userData['day'] == $day ? 'selected' : '' ?>><?= $day ?></option>
+                                <?php endfor ?>
+                            </select>
+                            <select class="form-control" name="year" id="year">
+                                <option value="" disabled selected>Year</option>
+                                <?php
+                                $range = 22;
+                                $currentYear = date("Y");
+                                for ($year = $currentYear; $year >= $currentYear-$range; $year--) : ?>
+                                    <option value="<?= $year ?>" <?= $userData['year'] == $year ? 'selected' : '' ?>><?= $year ?></option>
+                                <?php endfor ?>
+                            </select>
+                        </div>
+                    </div>
+
                 </div>
                 <button class="btn btn-primary" type="submit" name="update-btn">Update</button>
                 <a href="records.php" class="btn btn-secondary" type="submit">Back</a>
@@ -204,8 +272,9 @@ try {
         <?php endif ?>
     </div>
 
-    <script src="./assets/bootstrap-5.0.2/js/bootstrap.bundle.js"></script>
 
+    <script src="assets/jQuery/jquery-3.6.0.min.js"></script>
+    <script src="./assets/bootstrap-5.0.2/js/bootstrap.bundle.js"></script>
     <script>
         // Example starter JavaScript for disabling form submissions if there are invalid fields
         (function() {
@@ -225,8 +294,19 @@ try {
                 });
             }, false);
 
+            $('select#year, select#month').on('change', function() {
+                const year = $('select#year').val();
+                const month = $('select#month').val();
+                const daysOfMonth = new Date(year, month, 0).getDate();
+
+                $('select#day').html('<option value="" disabled selected>Day</option>');
+                for (let day = 1; day <= daysOfMonth; day++) {
+                    $('select#day').append(`<option value="${day}">${day}</option>`);
+                }
+            })
+
             document.querySelectorAll('.alert').forEach(function(alert) {
-                setTimeout(() => alert.classList.remove('show'), 5000);
+                setTimeout(() => alert.classList.remove('show'), 10000);
             })
         })();
     </script>

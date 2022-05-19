@@ -129,7 +129,7 @@ if (isset($_POST['signin-btn'])) {
             }, false);
 
             document.querySelectorAll('.alert').forEach(function(alert) {
-                setTimeout(() => alert.classList.remove('show'), 5000);
+                setTimeout(() => alert.classList.remove('show'), 10000);
             })
         })();
     </script>

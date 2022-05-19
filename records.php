@@ -85,7 +85,7 @@ try {
     <style>
         div.records {
             margin: auto;
-            width: 80vw;
+            width: 96vw;
             height: 80vh;
             background-color: #81334950;
             box-shadow: #813349bb 0px 0px 4px 4px;
@@ -163,6 +163,9 @@ try {
                 <div class="d-flex flex-grow-1">
                     <h4 class="w-50 m-0">Full name</h4>
                     <h4 class="w-50 m-0">Username</h4>
+                    <h4 class="w-50 m-0">Gender</h4>
+                    <h4 class="w-50 m-0">Birthday</h4>
+                    <h4 class="w-50 m-0">Address</h4>
                 </div>
                 <h4 class="ps-3 pe-5 m-0">Action</h4>
             </div>
@@ -173,8 +176,11 @@ try {
                         <div class="row-item d-flex p-1 rounded mx-1 bg-white">
                             <div class="px-3 m-0 my-auto"><?= $key + 1 ?></div>
                             <div class="d-flex flex-grow-1">
-                                <div class="w-50 m-0 my-auto"><?= "$row[firstname] $row[lastname]" ?><?= $_SESSION['SAVED_LOGIN'] === $row['username'] ? '<i class="text-muted"> (Me)</i>' : '' ?></div>
+                                <div class="w-50 m-0 my-auto"><?= $row['gender'] == 'male' ? 'Mr.' : 'Miss' ?> <?= "$row[firstname] $row[lastname]" ?><?= $_SESSION['SAVED_LOGIN'] === $row['username'] ? '<i class="text-muted"> (Me)</i>' : '' ?></div>
                                 <div class="w-50 m-0 my-auto"><?= $row['username'] ?></div>
+                                <div class="w-50 m-0 my-auto text-capitalize"><?= $row['gender'] ?></div>
+                                <div class="w-50 m-0 my-auto"><?= date("F d, Y", strtotime("$row[year]-$row[month]-$row[day]")) ?></div>
+                                <div class="w-50 m-0 my-auto"><?= $row['address'] ?></div>
                             </div>
                             <div class="m-0">
                                 <a href="editting-form.php?username=<?= $row['username'] ?>" class="btn btn-primary">Edit</a>
@@ -227,8 +233,9 @@ try {
 
     <script>
         (function() {
+
             document.querySelectorAll('.alert').forEach(function(alert) {
-                setTimeout(() => alert.classList.remove('show'), 5000);
+                setTimeout(() => alert.classList.remove('show'), 10000);
             })
         })()
     </script>
